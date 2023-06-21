@@ -7,6 +7,7 @@ authors = ["Daniel Stoops <danielstoops25@gmail.com>"]
 maintainers = ["Daniel Stoops <danielstoops25@gmail.com>"]
 readme = "README.md"
 packages = [{include = "jupyter_cleaner"}]
+homepage = "https://github.com/Stoops-ML/jupyter-cleaner"
 
 [tool.poetry.dependencies]
 python = "^3.11"
