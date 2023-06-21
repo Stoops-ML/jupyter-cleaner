@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "jupyter-cleaner"
+version = "0.1.0"
+description = "Easy git tracking of Jupyter lab files"
+license = "MIT"
+authors = ["Daniel Stoops <danielstoops25@gmail.com>"]
+maintainers = ["Daniel Stoops <danielstoops25@gmail.com>"]
+readme = "README.md"
+packages = [{include = "jupyter_cleaner"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+black = {extras = ["jupyter"], version = "^23.3.0"}
+reorder-python-imports = "^3.10.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.2"
+mypy = "^1.4.0"
+tox = "^4.6.3"
+flake8 = "^6.0.0"
+pre-commit = "^3.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+jupyter_cleaner = "jupyter_cleaner.jupyter_cleaner:main"
+
+[tool.jupyter_cleaner]
+execution_count=0
+remove_code_output=true
+format=true
+reorder_imports=true
+
+[tool.pytest.ini_options]
+testpaths = "tests"
