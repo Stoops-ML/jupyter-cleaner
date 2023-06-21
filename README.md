@@ -8,7 +8,7 @@ This is done by:
 - Reordering imports in all cells (using reorder-python-imports)
 - Setting the execution count of all cells
 
-It is recommended to run jupyter-cleaner using pre-commit:
+It is recommended to run jupyter-cleaner using [pre-commit](https://pre-commit.com/):
 ```
 default_language_version:
   python: python3.11
