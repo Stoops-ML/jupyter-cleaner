@@ -38,6 +38,7 @@ def run(
     remove_code_output: bool = True,
     format: bool = True,
     reorder_imports: bool = True,
+    indent_level: int = 4,
     black_config: Optional[Dict[str, str]] = None,
 ) -> None:
     """Format Jupyter lab files.
@@ -47,6 +48,7 @@ def run(
     :param bool remove_code_output: remove output from code cells, defaults to True
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
+    :param int indent_level: integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.
     :param Optional[Dict[str, str]] black_config: configuration from black formatting, defaults to None
     :raises TypeError: when file input is unrecognised
     """
@@ -111,7 +113,7 @@ def run(
                         cell["source"] = cell_content
 
         with open(file, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=indent_level)
 
 
 @lru_cache
