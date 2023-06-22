@@ -209,7 +209,7 @@ def parse_pyproject() -> (
     with open(pyproject_path, "rb") as f:
         pyproject_toml = tomllib.load(f)
 
-    config: Dict[str, Any] = pyproject_toml.get("tool", {}).get("jupyter_cleaner", {})
+    config: Dict[str, Any] = pyproject_toml.get("tool", {}).get("jupyter-cleaner", {})
 
     files_or_dirs = config["files_or_dirs"] if "files_or_dirs" in config else None
     if isinstance(files_or_dirs, str):
