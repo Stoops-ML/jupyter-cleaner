@@ -186,6 +186,7 @@ def parse_pyproject() -> (
             None,
             None,
             None,
+            None,
         )
 
     with open(pyproject_path, "rb") as f:
