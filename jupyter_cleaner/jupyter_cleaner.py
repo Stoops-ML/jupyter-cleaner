@@ -211,14 +211,14 @@ def parse_pyproject() -> (
 
     config: Dict[str, Any] = pyproject_toml.get("tool", {}).get("jupyter_cleaner", {})
 
-    files_or_dir = config["files_or_dir"] if "files_or_dir" in config else None
-    if isinstance(files_or_dir, str):
-        files_or_dir = [files_or_dir]
-    exclude_files_or_dir = (
-        config["exclude_files_or_dir"] if "exclude_files_or_dir" in config else None
+    files_or_dirs = config["files_or_dirs"] if "files_or_dirs" in config else None
+    if isinstance(files_or_dirs, str):
+        files_or_dirs = [files_or_dirs]
+    exclude_files_or_dirs = (
+        config["exclude_files_or_dirs"] if "exclude_files_or_dirs" in config else None
     )
-    if isinstance(exclude_files_or_dir, str):
-        exclude_files_or_dir = [exclude_files_or_dir]
+    if isinstance(exclude_files_or_dirs, str):
+        exclude_files_or_dirs = [exclude_files_or_dirs]
     execution_count = config["execution_count"] if "execution_count" in config else None
     remove_code_output = (
         config["remove_code_output"] if "remove_code_output" in config else None
@@ -227,26 +227,26 @@ def parse_pyproject() -> (
     reorder_imports = config["reorder_imports"] if "reorder_imports" in config else None
     indent_level = config["indent_level"] if "indent_level" in config else None
     return (
-        files_or_dir,
+        files_or_dirs,
         execution_count,
         remove_code_output,
         format,
         reorder_imports,
         indent_level,
-        exclude_files_or_dir,
+        exclude_files_or_dirs,
     )
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="jupyter_cleaner")
     parser.add_argument(
-        "files_or_dir",
+        "files_or_dirs",
         type=str,
         nargs="+",
         help="Jupyter lab files to format or directories to search for lab files",
     )
     parser.add_argument(
-        "--exclude_files_or_dir",
+        "--exclude_files_or_dirs",
         type=str,
         nargs="+",
         help="Jupyter lab files or directories to exclude from formatting and search",
@@ -280,19 +280,19 @@ def parse_args():
     )
     args = parser.parse_args()
     return (
-        args.files_or_dir,
+        args.files_or_dirs,
         args.execution_count,
         args.remove_code_output,
         args.format,
         args.reorder_imports,
         args.indent_level,
-        args.exclude_files_or_dir,
+        args.exclude_files_or_dirs,
     )
 
 
-def get_lab_files(files_or_dirs: List[Path]) -> List[Path]:
+def get_lab_files(files_or_dirss: List[Path]) -> List[Path]:
     files = []
-    for file_or_dir in files_or_dirs:
+    for file_or_dir in files_or_dirss:
         if file_or_dir.is_dir():
             files.extend([p for p in file_or_dir.rglob("*.ipynb")])
         elif file_or_dir.is_file() and file_or_dir.suffix == ".ipynb":
@@ -303,50 +303,50 @@ def get_lab_files(files_or_dirs: List[Path]) -> List[Path]:
 
 
 def process_inputs(
-    args_files_or_dirs: List[str],
+    args_files_or_dirss: List[str],
     args_execution_count: int,
     args_remove_code_output: bool,
     args_format: bool,
     args_reorder_imports: bool,
     args_indent_level: int,
-    args_exclude_files_or_dir: List[str],
-    project_files_or_dirs: Union[List[str], str, None],
+    args_exclude_files_or_dirs: List[str],
+    project_files_or_dirss: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_code_output: Union[bool, None],
     project_format: Union[bool, None],
     project_reorder_imports: Union[bool, None],
     project_indent_level: Union[int, None],
-    project_exclude_files_or_dir: Union[List[str], str, None],
+    project_exclude_files_or_dirs: Union[List[str], str, None],
 ) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path]]:
     """Creates inputs of the right format and prioritises pyproject inputs over argparse inputs, outside of files and directories where all inputs are combined.
 
-    :param List[str] args_files_or_dirs: files or directories from argparse
-    :param List[str] args_exclude_files_or_dir: files or directories to exclude from argparse
+    :param List[str] args_files_or_dirss: files or directories from argparse
+    :param List[str] args_exclude_files_or_dirs: files or directories to exclude from argparse
     :param int args_execution_count: execution count from argparse
     :param bool args_remove_code_output: remove code output from argparse
     :param bool args_format: apply formatting from argparse
     :param bool args_reorder_imports: reorder imports from argparse
-    :param Union[List[str], str, None] project_files_or_dirs: files or directories from pyproject
-    :param Union[List[str], str, None] project_exclude_files_or_dir: files or directories to exclude from pyproject
+    :param Union[List[str], str, None] project_files_or_dirss: files or directories from pyproject
+    :param Union[List[str], str, None] project_exclude_files_or_dirs: files or directories to exclude from pyproject
     :param Union[int, None] project_execution_count: execution count from pyproject
     :param Union[bool, None] project_remove_code_output: remove code output from pyproject
     :param Union[bool, None] project_format: apply formatting from pyproject
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
     """
-    if args_files_or_dirs is None:
-        args_files_or_dirs = [Path.cwd().resolve()]
-    if project_files_or_dirs is None:
-        project_files_or_dirs = []
-    elif isinstance(project_files_or_dirs, str):
-        project_files_or_dirs = [project_files_or_dirs]
-    files_or_dirs = [Path(f) for f in project_files_or_dirs + args_files_or_dirs]
-    if project_exclude_files_or_dir is None:
-        project_exclude_files_or_dir = []
-    elif isinstance(project_exclude_files_or_dir, str):
-        project_exclude_files_or_dir = [project_exclude_files_or_dir]
-    exclude_files_or_dirs = [
-        Path(f) for f in project_exclude_files_or_dir + args_exclude_files_or_dir
+    if args_files_or_dirss is None:
+        args_files_or_dirss = [Path.cwd().resolve()]
+    if project_files_or_dirss is None:
+        project_files_or_dirss = []
+    elif isinstance(project_files_or_dirss, str):
+        project_files_or_dirss = [project_files_or_dirss]
+    files_or_dirss = [Path(f) for f in project_files_or_dirss + args_files_or_dirss]
+    if project_exclude_files_or_dirs is None:
+        project_exclude_files_or_dirs = []
+    elif isinstance(project_exclude_files_or_dirs, str):
+        project_exclude_files_or_dirs = [project_exclude_files_or_dirs]
+    exclude_files_or_dirss = [
+        Path(f) for f in project_exclude_files_or_dirs + args_exclude_files_or_dirs
     ]
     execution_count = (
         project_execution_count
@@ -369,64 +369,64 @@ def process_inputs(
     )
 
     return (
-        files_or_dirs,
+        files_or_dirss,
         execution_count,
         remove_code_output,
         format,
         reorder_imports,
         indent_level,
-        exclude_files_or_dirs,
+        exclude_files_or_dirss,
     )
 
 
 def main():
     (
-        args_files_or_dirs,
+        args_files_or_dirss,
         args_execution_count,
         args_remove_code_output,
         args_format,
         args_reorder_imports,
         args_indent_level,
-        args_exclude_files_or_dir,
+        args_exclude_files_or_dirs,
     ) = parse_args()
 
     (
-        project_files_or_dirs,
+        project_files_or_dirss,
         project_execution_count,
         project_remove_code_output,
         project_format,
         project_reorder_imports,
         project_indent_level,
-        project_exclude_files_or_dir,
+        project_exclude_files_or_dirs,
     ) = parse_pyproject()
 
     (
-        files_or_dirs,
+        files_or_dirss,
         execution_count,
         remove_code_output,
         format,
         reorder_imports,
         indent_level,
-        exclude_files_or_dirs,
+        exclude_files_or_dirss,
     ) = process_inputs(
-        args_files_or_dirs,
+        args_files_or_dirss,
         args_execution_count,
         args_remove_code_output,
         args_format,
         args_reorder_imports,
         args_indent_level,
-        args_exclude_files_or_dir,
-        project_files_or_dirs,
+        args_exclude_files_or_dirs,
+        project_files_or_dirss,
         project_execution_count,
         project_remove_code_output,
         project_format,
         project_reorder_imports,
         project_indent_level,
-        project_exclude_files_or_dir,
+        project_exclude_files_or_dirs,
     )
 
-    files = get_lab_files(files_or_dirs)
-    exclude_files = get_lab_files(exclude_files_or_dirs)
+    files = get_lab_files(files_or_dirss)
+    exclude_files = get_lab_files(exclude_files_or_dirss)
 
     run(
         files,
