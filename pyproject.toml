@@ -38,3 +38,33 @@ indent_level=4
 
 [tool.pytest.ini_options]
 testpaths = "tests"
+
+[tool.tox]
+# run before tox: pyenv local 3.7.9, 3.8.10, 3.9.13, 3.10.10, 3.11.2
+legacy_tox_ini = """
+[tox]
+envlist =
+    python37
+    python38
+    python39
+    python310
+    python311
+    lint
+isolated_build = true
+
+[testenv]
+allowlist_externals = poetry
+commands_pre =
+    poetry install --no-root --sync
+setenv =
+    PYTHONPATH = {toxinidir}
+commands =
+    python -m pytest --basetemp={envtmpdir}
+
+[testenv:lint]
+extras = test
+commands =
+    python -m flake8 jupyter_cleaner/ tests/
+    python -m mypy jupyter_cleaner/ tests/
+    python -m black --check --diff .
+"""
