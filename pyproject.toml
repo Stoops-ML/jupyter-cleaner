@@ -28,6 +28,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 jupyter_cleaner = "jupyter_cleaner.jupyter_cleaner:main"
+jupyter-cleaner = "jupyter_cleaner.jupyter_cleaner:main"
 
 [tool.jupyter_cleaner]
 execution_count=0
