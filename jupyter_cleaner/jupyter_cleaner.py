@@ -292,8 +292,8 @@ def get_lab_files(files_or_dirs: List[Path]) -> List[Path]:
         elif file_or_dir.is_file() and file_or_dir.suffix == ".ipynb":
             files.append(file_or_dir)
         else:
-            raise ValueError("Files or directories do not exist or could not be found")
-    return files
+            raise ValueError("File or directory does not exist or could not be found")
+    return list(set(files))
 
 
 def process_inputs(
