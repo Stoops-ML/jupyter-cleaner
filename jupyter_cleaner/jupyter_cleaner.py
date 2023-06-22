@@ -56,7 +56,7 @@ def run(
         black_config = {}
 
     for file in files:
-        if not file.is_file() and not file.exists() and file.suffix != ".ipynb":
+        if not file.is_file() or not file.exists() or file.suffix != ".ipynb":
             continue
 
         with open(file) as f:
