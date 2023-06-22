@@ -121,6 +121,11 @@ def run(
                         cell_content[-1] = cell_content[-1][:-1]
                         cell["source"] = cell_content
 
+        with open(file) as f:
+            original_data = json.load(f)
+            if data == original_data:
+                continue
+
         with open(file, "w") as f:
             json.dump(data, f, indent=indent_level)
         print(f"Reformatted {str(file)}")
