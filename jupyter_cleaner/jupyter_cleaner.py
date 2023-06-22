@@ -123,6 +123,7 @@ def run(
 
         with open(file, "w") as f:
             json.dump(data, f, indent=indent_level)
+        print(f"Reformatted {str(file)}")
 
 
 @lru_cache
