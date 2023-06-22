@@ -309,7 +309,7 @@ def process_inputs(
     args_format: bool,
     args_reorder_imports: bool,
     args_indent_level: int,
-    args_exclude_files_or_dirs: List[str],
+    args_exclude_files_or_dirs: Union[List[str], None],
     project_files_or_dirss: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_code_output: Union[bool, None],
@@ -345,6 +345,8 @@ def process_inputs(
         project_exclude_files_or_dirs = []
     elif isinstance(project_exclude_files_or_dirs, str):
         project_exclude_files_or_dirs = [project_exclude_files_or_dirs]
+    if args_exclude_files_or_dirs is None:
+        args_exclude_files_or_dirs = []
     exclude_files_or_dirss = [
         Path(f) for f in project_exclude_files_or_dirs + args_exclude_files_or_dirs
     ]
