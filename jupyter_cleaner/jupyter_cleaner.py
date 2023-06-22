@@ -219,7 +219,8 @@ def parse_args():
     parser.add_argument(
         "files_or_dir",
         type=str,
-        nargs="*",
+        nargs="+",
+        required=True,
         help="Jupyter lab files to format or directories to search for lab files",
     )
     parser.add_argument(
