@@ -44,7 +44,7 @@ def run(
     """Format Jupyter lab files.
 
     :param Union[str, Path, Sequence[Union[str, Path]]] files: file(s) to be formatted
-    :param int execution_count: sets execution count, defaults to 0
+    :param int execution_count: sets execution count. If the integer is greater than zero the count will be printed, else `null` will be printed. Defaults to 0.
     :param bool remove_code_output: remove output from code cells, defaults to True
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
@@ -68,7 +68,9 @@ def run(
 
             for cell in data["cells"]:
                 if "execution_count" in cell.keys() and cell["cell_type"] == "code":
-                    cell["execution_count"] = execution_count
+                    cell["execution_count"] = (
+                        execution_count if execution_count > 0 else "null"
+                    )
                     if remove_code_output:
                         cell["outputs"] = []
 

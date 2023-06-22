@@ -94,7 +94,7 @@ def test_defaults() -> None:
         "cells": [
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": [
@@ -104,14 +104,14 @@ def test_defaults() -> None:
             },
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": ["import datetime\n", "import re"],
             },
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": ["a = 1\n", "a"],
@@ -411,7 +411,7 @@ def test_pyroject() -> None:
         "cells": [
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": [
@@ -421,14 +421,14 @@ def test_pyroject() -> None:
             },
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": ["import datetime\n", "import re"],
             },
             {
                 "cell_type": "code",
-                "execution_count": 0,
+                "execution_count": "null",
                 "metadata": {},
                 "outputs": [],
                 "source": ["a = 1\n", "a"],
