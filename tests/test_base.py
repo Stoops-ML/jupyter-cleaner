@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
+from typing import List
 
 from jupyter_cleaner.jupyter_cleaner import get_lab_files  # type: ignore
 from jupyter_cleaner.jupyter_cleaner import parse_pyproject  # type: ignore
@@ -458,6 +459,9 @@ def test_pyroject() -> None:
     nb_file = Path("test.ipynb")
     with open(nb_file, "w") as f:
         json.dump(data, f)
+    nb_file_exclude = Path("test_exclude.ipynb")
+    with open(nb_file_exclude, "w") as f:
+        json.dump(data, f)
 
     args_execution_count = 1000
     args_remove_code_output = False
@@ -465,6 +469,7 @@ def test_pyroject() -> None:
     args_reorder_imports = False
     args_files_or_dirs = ["."]
     args_indent_level = 10
+    args_exclude_files_or_dir: List[str] = []
 
     (
         project_files_or_dirs,
@@ -473,7 +478,9 @@ def test_pyroject() -> None:
         project_format,
         project_reorder_imports,
         project_indent_level,
+        project_exclude_files_or_dir,
     ) = parse_pyproject()
+    project_exclude_files_or_dir = [str(nb_file_exclude)]
 
     (
         files_or_dirs,
@@ -482,6 +489,7 @@ def test_pyroject() -> None:
         format,
         reorder_imports,
         indent_level,
+        exclude_files_or_dirs,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
@@ -489,15 +497,18 @@ def test_pyroject() -> None:
         args_format,
         args_reorder_imports,
         args_indent_level,
+        args_exclude_files_or_dir,
         project_files_or_dirs,
         project_execution_count,
         project_remove_code_output,
         project_format,
         project_reorder_imports,
         project_indent_level,
+        project_exclude_files_or_dir,
     )
 
     files = get_lab_files(files_or_dirs)
+    exclude_files = get_lab_files(exclude_files_or_dirs)
 
     run(
         files,
@@ -506,8 +517,13 @@ def test_pyroject() -> None:
         format,
         reorder_imports,
         indent_level,
+        exclude_files,
     )
     with open(nb_file) as f:
         formatted_data = json.load(f)
     assert formatted_data == expected_result
     os.unlink(nb_file)
+    with open(nb_file_exclude) as f:
+        excluded_data = json.load(f)
+    assert excluded_data == data
+    os.unlink(nb_file_exclude)
