@@ -10,17 +10,16 @@ packages = [{include = "jupyter_cleaner"}]
 homepage = "https://github.com/Stoops-ML/jupyter-cleaner"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-black = {extras = ["jupyter"], version = "*"}
-reorder-python-imports = "*"
-
+python = "^3.8.1"
+black = {extras = ["jupyter"], version = "^23.3.0"}
+reorder-python-imports = "^3.10.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "*"
-mypy = "*"
-tox = "*"
-flake8 = "*"
-pre-commit = "*"
+mypy = "^1.4.0"
+tox = "^4.6.3"
+flake8 = "^6.0.0"
+pytest = "^7.3.2"
+pre-commit = "^3.3.3"
 
 [build-system]
 requires = ["poetry-core"]
@@ -62,7 +61,10 @@ commands =
     python -m pytest --basetemp={envtmpdir}
 
 [testenv:lint]
-extras = test
+deps =
+    flake8
+    mypy
+    black
 commands =
     python -m flake8 jupyter_cleaner/ tests/
     python -m mypy jupyter_cleaner/ tests/
