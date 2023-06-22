@@ -41,7 +41,6 @@ repos:
     rev: v1.2.0
     hooks:
     -   id: mypy
-        files: ^jupyter_cleaner/ ^tests/
         args: []
 
 - repo: local

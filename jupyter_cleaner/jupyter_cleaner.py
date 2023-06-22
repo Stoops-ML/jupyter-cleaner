@@ -38,6 +38,7 @@ def run(
     remove_code_output: bool = True,
     format: bool = True,
     reorder_imports: bool = True,
+    indent_level: int = 4,
     black_config: Optional[Dict[str, str]] = None,
 ) -> None:
     """Format Jupyter lab files.
@@ -47,6 +48,7 @@ def run(
     :param bool remove_code_output: remove output from code cells, defaults to True
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
+    :param int indent_level: integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.
     :param Optional[Dict[str, str]] black_config: configuration from black formatting, defaults to None
     :raises TypeError: when file input is unrecognised
     """
@@ -111,7 +113,7 @@ def run(
                         cell["source"] = cell_content
 
         with open(file, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=indent_level)
 
 
 @lru_cache
@@ -168,6 +170,7 @@ def parse_pyproject() -> (
         Union[bool, None],
         Union[bool, None],
         Union[bool, None],
+        Union[int, None],
     ]
 ):
     """Parse inputs from pyproject.toml
@@ -178,6 +181,7 @@ def parse_pyproject() -> (
     pyproject_path = project_root / "pyproject.toml"
     if not pyproject_path.exists():
         return (
+            None,
             None,
             None,
             None,
@@ -197,12 +201,14 @@ def parse_pyproject() -> (
     )
     format = config["format"] if "format" in config else None
     reorder_imports = config["reorder_imports"] if "reorder_imports" in config else None
+    indent_level = config["indent_level"] if "indent_level" in config else None
     return (
         files,
         execution_count,
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     )
 
 
@@ -219,6 +225,12 @@ def parse_args():
         type=int,
         default=0,
         help="Number to set for the execution count of every cell",
+    )
+    parser.add_argument(
+        "--indent_level",
+        type=int,
+        default=4,
+        help="Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.",
     )
     parser.add_argument(
         "--remove_code_output",
@@ -242,6 +254,7 @@ def parse_args():
         args.remove_code_output,
         args.format,
         args.reorder_imports,
+        args.indent_level,
     )
 
 
@@ -263,12 +276,14 @@ def process_inputs(
     args_remove_code_output: bool,
     args_format: bool,
     args_reorder_imports: bool,
+    args_indent_level: int,
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_code_output: Union[bool, None],
     project_format: Union[bool, None],
     project_reorder_imports: Union[bool, None],
-) -> Tuple[List[Path], int, bool, bool, bool]:
+    project_indent_level: Union[int, None],
+) -> Tuple[List[Path], int, bool, bool, bool, int]:
     """Creates inputs of the right format and prioritises pyproject inputs over argparse inputs, outside of files and directories where all inputs are combined.
 
     :param List[str] args_files_or_dirs: files or directories from argparse
@@ -306,6 +321,9 @@ def process_inputs(
         if project_reorder_imports is not None
         else args_reorder_imports
     )
+    indent_level = (
+        project_indent_level if project_indent_level is not None else args_indent_level
+    )
 
     return (
         files_or_dirs,
@@ -313,6 +331,7 @@ def process_inputs(
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     )
 
 
@@ -323,6 +342,7 @@ def main():
         args_remove_code_output,
         args_format,
         args_reorder_imports,
+        args_indent_level,
     ) = parse_args()
 
     (
@@ -331,6 +351,7 @@ def main():
         project_remove_code_output,
         project_format,
         project_reorder_imports,
+        project_indent_level,
     ) = parse_pyproject()
 
     (
@@ -339,17 +360,20 @@ def main():
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
         args_remove_code_output,
         args_format,
         args_reorder_imports,
+        args_indent_level,
         project_files_or_dirs,
         project_execution_count,
         project_remove_code_output,
         project_format,
         project_reorder_imports,
+        project_indent_level,
     )
 
     files = get_lab_files(files_or_dirs)
@@ -360,4 +384,5 @@ def main():
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     )

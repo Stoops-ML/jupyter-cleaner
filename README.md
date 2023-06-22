@@ -7,6 +7,7 @@ This is done by:
 - Formatting all cells (using black)
 - Reordering imports in all cells (using reorder-python-imports)
 - Setting the execution count of all cells
+- pretty printing the lab file
 
 It is recommended to run jupyter-cleaner using [pre-commit](https://pre-commit.com/):
 ```
@@ -35,6 +36,8 @@ options:
   -h, --help            show this help message and exit
   --execution_count EXECUTION_COUNT
                         Number to set for the execution count of every cell
+  --indent_level INDENT_LEVEL
+                        Integer greater than zero will pretty-print the JSON array with that indent level. An indent level 0 or negative will only insert newlines.
   --remove_code_output  Number to set for the execution count of every cell
   --format              Format code of every cell (uses black)
   --reorder_imports     Reorder imports of every cell (uses reorder-python-imports)
@@ -48,4 +51,5 @@ execution_count=0
 remove_code_output=true
 format=true
 reorder_imports=true
+indent_level=4
 ```

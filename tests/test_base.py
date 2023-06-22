@@ -464,6 +464,7 @@ def test_pyroject() -> None:
     args_format = False
     args_reorder_imports = False
     args_files_or_dirs = ["."]
+    args_indent_level = 10
 
     (
         project_files_or_dirs,
@@ -471,6 +472,7 @@ def test_pyroject() -> None:
         project_remove_code_output,
         project_format,
         project_reorder_imports,
+        project_indent_level,
     ) = parse_pyproject()
 
     (
@@ -479,17 +481,20 @@ def test_pyroject() -> None:
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
         args_remove_code_output,
         args_format,
         args_reorder_imports,
+        args_indent_level,
         project_files_or_dirs,
         project_execution_count,
         project_remove_code_output,
         project_format,
         project_reorder_imports,
+        project_indent_level,
     )
 
     files = get_lab_files(files_or_dirs)
@@ -500,6 +505,7 @@ def test_pyroject() -> None:
         remove_code_output,
         format,
         reorder_imports,
+        indent_level,
     )
     with open(nb_file) as f:
         formatted_data = json.load(f)
