@@ -34,6 +34,7 @@ execution_count=0
 remove_code_output=true
 format=true
 reorder_imports=true
+indent_level=4
 
 [tool.pytest.ini_options]
 testpaths = "tests"
