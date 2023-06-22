@@ -288,7 +288,7 @@ def get_lab_files(files_or_dirs: List[Path]) -> List[Path]:
     files = []
     for file_or_dir in files_or_dirs:
         if file_or_dir.is_dir():
-            files.extend([p for p in file_or_dir.rglob("*") if p.suffix == ".ipynb"])
+            files.extend([p for p in file_or_dir.rglob("*.ipynb")])
         elif file_or_dir.is_file() and file_or_dir.suffix == ".ipynb":
             files.append(file_or_dir)
         else:
