@@ -266,7 +266,7 @@ def parse_args():
     parser.add_argument(
         "--remove_code_output",
         action="store_false",
-        help="Number to set for the execution count of every cell",
+        help="Remove output of cell",
     )
     parser.add_argument(
         "--format",
