@@ -51,13 +51,25 @@ envlist =
 isolated_build = true
 
 [testenv]
-allowlist_externals = poetry
-commands_pre =
-    poetry install --no-root --sync
+deps =
+    pytest
 setenv =
     PYTHONPATH = {toxinidir}
 commands =
+    python -c "import sys; print(sys.version_info)"
     python -m pytest --basetemp={envtmpdir}
+
+[testenv:python38]
+base_python = python38
+
+[testenv:python39]
+base_python = python39
+
+[testenv:python310]
+base_python = python310
+
+[testenv:python311]
+base_python = python311
 
 [testenv:lint]
 deps =
