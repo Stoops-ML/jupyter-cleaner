@@ -39,11 +39,10 @@ indent_level=4
 testpaths = "tests"
 
 [tool.tox]
-# run before tox: pyenv local 3.7.9, 3.8.10, 3.9.13, 3.10.10, 3.11.2
+# run in parent (pwsh) shell before tox: pyenv local 3.8.10, 3.9.13, 3.10.10, 3.11.2
 legacy_tox_ini = """
 [tox]
 envlist =
-    python37
     python38
     python39
     python310
