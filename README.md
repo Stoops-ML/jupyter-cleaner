@@ -3,26 +3,13 @@
 jupyter-cleaner makes tracking Jupyter lab files in git easy.
 
 This is done by:
-- Removing output of all cells
-- Formatting all cells (using black)
-- Reordering imports in all cells (using reorder-python-imports)
-- Setting the execution count of all cells
-- pretty printing the lab file
+- Removing the output of cells
+- Formatting the source of cells (using black)
+- Reordering imports in the source of cells (using reorder-python-imports)
+- Setting the execution count of cells
+- pretty printing the JSON array
 
-It is recommended to run jupyter-cleaner using [pre-commit](https://pre-commit.com/):
-```
-default_language_version:
-  python: python3.11
-repos:
-- repo: local
-  hooks:
-      - id: jupyter-cleaner
-        name: jupyter-cleaner
-        entry: jupyter-cleaner .
-        language: system
-        pass_filenames: false
-        always_run: true
-```
+It is recommended to run jupyter-cleaner before adding the Jupyter lab files to the stage in git. This allows for easier tracking of differences between commits.
 
 ## CLI
 running `jupyter-cleaner -h` displays:
@@ -43,9 +30,9 @@ options:
   --execution_count EXECUTION_COUNT
                         Number to set for the execution count of every cell
   --indent_level INDENT_LEVEL
-                        Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only
-                        insert newlines.
-  --remove_code_output  Number to set for the execution count of every cell
+                        Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert
+                        newlines.
+  --remove_code_output  Remove output of cell
   --format              Format code of every cell (uses black)
   --reorder_imports     Reorder imports of every cell (uses reorder-python-imports)
 ```
