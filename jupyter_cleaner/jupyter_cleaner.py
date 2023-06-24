@@ -278,6 +278,11 @@ def parse_args():
         action="store_false",
         help="Reorder imports of every cell (uses reorder-python-imports)",
     )
+    parser.add_argument(
+        "--ignore_pyproject",
+        action="store_false",
+        help="Argparse will over-ride pyproject",
+    )
     args = parser.parse_args()
     return (
         args.files_or_dirs,
@@ -287,6 +292,7 @@ def parse_args():
         args.reorder_imports,
         args.indent_level,
         args.exclude_files_or_dirs,
+        args.ignore_pyproject,
     )
 
 
@@ -310,6 +316,7 @@ def process_inputs(
     args_reorder_imports: bool,
     args_indent_level: int,
     args_exclude_files_or_dirs: Union[List[str], None],
+    args_ignore_pyproject: bool,
     project_files_or_dirss: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_code_output: Union[bool, None],
@@ -334,6 +341,15 @@ def process_inputs(
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
     """
+    if args_ignore_pyproject:
+        project_files_or_dirss = None
+        project_execution_count = None
+        project_remove_code_output = None
+        project_format = None
+        project_reorder_imports = None
+        project_indent_level = None
+        project_exclude_files_or_dirs = None
+
     if args_files_or_dirss is None:
         args_files_or_dirss = [Path.cwd().resolve()]
     if project_files_or_dirss is None:
@@ -390,6 +406,7 @@ def main():
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dirs,
+        args_ignore_pyproject,
     ) = parse_args()
 
     (
@@ -418,6 +435,7 @@ def main():
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dirs,
+        args_ignore_pyproject,
         project_files_or_dirss,
         project_execution_count,
         project_remove_code_output,
