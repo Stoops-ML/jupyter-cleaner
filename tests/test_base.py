@@ -470,6 +470,7 @@ def test_pyroject() -> None:
     args_files_or_dirs = ["."]
     args_indent_level = 10
     args_exclude_files_or_dir: List[str] = []
+    args_ignore_pyproject = False
 
     (
         project_files_or_dirs,
@@ -498,6 +499,7 @@ def test_pyroject() -> None:
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dir,
+        args_ignore_pyproject,
         project_files_or_dirs,
         project_execution_count,
         project_remove_code_output,
