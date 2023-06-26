@@ -263,22 +263,22 @@ def parse_args():
     )
     parser.add_argument(
         "--remove_outputs",
-        action="store_false",
+        action="store_true",
         help="Remove output of cell",
     )
     parser.add_argument(
         "--format",
-        action="store_false",
+        action="store_true",
         help="Format code of every cell (uses black)",
     )
     parser.add_argument(
         "--reorder_imports",
-        action="store_false",
+        action="store_true",
         help="Reorder imports of every cell (uses reorder-python-imports)",
     )
     parser.add_argument(
         "--ignore_pyproject",
-        action="store_false",
+        action="store_true",
         help="Argparse will over-ride pyproject",
     )
     args = parser.parse_args()
