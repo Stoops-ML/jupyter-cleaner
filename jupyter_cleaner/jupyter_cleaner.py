@@ -78,48 +78,43 @@ def run(
                     cell["execution_count"] = (
                         execution_count if execution_count > 0 else "null"
                     )
-                    if remove_outputs:
-                        cell["outputs"] = []
+                if remove_outputs and "outputs" in cell.keys():
+                    cell["outputs"] = []
 
-                    if format:
-                        try:
-                            mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
-                            str_cell_content = black.format_cell(
-                                "".join(cell["source"]), mode=mode, fast=False
-                            )
-                            cell_content = [
-                                f"{c}\n" for c in str_cell_content.split("\n")
-                            ]
-                            cell_content[-1] = cell_content[-1][
-                                :-1
-                            ]  # remove last newline
-                            cell["source"] = cell_content
-                        except black.NothingChanged:
-                            pass
-
-                    if reorder_imports:
-                        to_remove = {
-                            import_obj_from_str(s).key
-                            for k, v in REMOVALS.items()
-                            if min_python_version >= k
-                            for s in v
-                        }
-                        replace_import: List[str] = []
-                        for k, v in REPLACES.items():
-                            if min_python_version >= k:
-                                replace_import.extend(
-                                    _validate_replace_import(replace_s)
-                                    for replace_s in v
-                                )
-                        to_replace = Replacements.make(replace_import)
-                        str_cell_content = fix_file_contents(
-                            "".join(cell["source"]),
-                            to_replace=to_replace,
-                            to_remove=to_remove,
-                        )[:-1]
+                if format and "source" in cell.keys():
+                    try:
+                        mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
+                        str_cell_content = black.format_cell(
+                            "".join(cell["source"]), mode=mode, fast=False
+                        )
                         cell_content = [f"{c}\n" for c in str_cell_content.split("\n")]
-                        cell_content[-1] = cell_content[-1][:-1]
+                        cell_content[-1] = cell_content[-1][:-1]  # remove last newline
                         cell["source"] = cell_content
+                    except black.NothingChanged:
+                        pass
+
+                if reorder_imports and "source" in cell.keys():
+                    to_remove = {
+                        import_obj_from_str(s).key
+                        for k, v in REMOVALS.items()
+                        if min_python_version >= k
+                        for s in v
+                    }
+                    replace_import: List[str] = []
+                    for k, v in REPLACES.items():
+                        if min_python_version >= k:
+                            replace_import.extend(
+                                _validate_replace_import(replace_s) for replace_s in v
+                            )
+                    to_replace = Replacements.make(replace_import)
+                    str_cell_content = fix_file_contents(
+                        "".join(cell["source"]),
+                        to_replace=to_replace,
+                        to_remove=to_remove,
+                    )[:-1]
+                    cell_content = [f"{c}\n" for c in str_cell_content.split("\n")]
+                    cell_content[-1] = cell_content[-1][:-1]
+                    cell["source"] = cell_content
 
         with open(file) as f:
             original_data = json.load(f)
