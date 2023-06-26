@@ -253,33 +253,33 @@ def parse_args():
         "--execution_count",
         type=int,
         default=0,
-        help="Number to set for the execution count of every cell",
+        help="Number to set for the execution count of every cell. Defaults to 0.",
     )
     parser.add_argument(
         "--indent_level",
         type=int,
         default=4,
-        help="Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.",
+        help="Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.. Defaults to 4.",
     )
     parser.add_argument(
         "--remove_outputs",
         action="store_true",
-        help="Remove output of cell",
+        help="Remove output of cell. Defaults to false.",
     )
     parser.add_argument(
         "--format",
         action="store_true",
-        help="Format code of every cell (uses black)",
+        help="Format code of every cell (uses black). Defaults to false.",
     )
     parser.add_argument(
         "--reorder_imports",
         action="store_true",
-        help="Reorder imports of every cell (uses reorder-python-imports)",
+        help="Reorder imports of every cell (uses reorder-python-imports). Defaults to false.",
     )
     parser.add_argument(
         "--ignore_pyproject",
         action="store_true",
-        help="Argparse will over-ride pyproject",
+        help="Argparse will over-ride pyproject. Defaults to false.",
     )
     args = parser.parse_args()
     return (
