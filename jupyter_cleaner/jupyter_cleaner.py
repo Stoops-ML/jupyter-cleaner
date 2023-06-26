@@ -74,7 +74,7 @@ def run(
                 min_python_version = min_python_version[:2]
 
             for cell in data["cells"]:
-                if "execution_count" in cell.keys() and cell["cell_type"] == "code":
+                if execution_count >= 0 and "execution_count" in cell.keys():
                     cell["execution_count"] = (
                         execution_count if execution_count > 0 else "null"
                     )
@@ -253,7 +253,7 @@ def parse_args():
         "--execution_count",
         type=int,
         default=0,
-        help="Number to set for the execution count of every cell. Defaults to 0.",
+        help="Number to set for the execution count of every cell. A negative integer doesn't replace the execution count and 0 is replaced with null. Defaults to 0.",
     )
     parser.add_argument(
         "--indent_level",
