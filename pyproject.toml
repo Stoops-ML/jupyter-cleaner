@@ -30,7 +30,7 @@ jupyter-cleaner = "jupyter_cleaner.jupyter_cleaner:main"
 
 [tool.jupyter-cleaner]
 execution_count=0
-remove_code_output=true
+remove_outputs=true
 format=true
 reorder_imports=true
 indent_level=4

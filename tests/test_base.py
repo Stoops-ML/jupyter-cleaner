@@ -316,7 +316,7 @@ def test_inputs() -> None:
     run(
         [Path(file.name)],
         execution_count=100,
-        remove_code_output=False,
+        remove_outputs=False,
         format=False,
         reorder_imports=False,
     )
@@ -464,7 +464,7 @@ def test_pyroject() -> None:
         json.dump(data, f)
 
     args_execution_count = 1000
-    args_remove_code_output = False
+    args_remove_outputs = False
     args_format = False
     args_reorder_imports = False
     args_files_or_dirs = ["."]
@@ -475,7 +475,7 @@ def test_pyroject() -> None:
     (
         project_files_or_dirs,
         project_execution_count,
-        project_remove_code_output,
+        project_remove_outputs,
         project_format,
         project_reorder_imports,
         project_indent_level,
@@ -486,7 +486,7 @@ def test_pyroject() -> None:
     (
         files_or_dirs,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,
@@ -494,7 +494,7 @@ def test_pyroject() -> None:
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
-        args_remove_code_output,
+        args_remove_outputs,
         args_format,
         args_reorder_imports,
         args_indent_level,
@@ -502,7 +502,7 @@ def test_pyroject() -> None:
         args_ignore_pyproject,
         project_files_or_dirs,
         project_execution_count,
-        project_remove_code_output,
+        project_remove_outputs,
         project_format,
         project_reorder_imports,
         project_indent_level,
@@ -515,7 +515,7 @@ def test_pyroject() -> None:
     run(
         files,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,

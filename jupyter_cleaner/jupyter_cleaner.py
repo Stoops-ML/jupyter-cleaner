@@ -35,7 +35,7 @@ else:
 def run(
     files: Sequence[Path],
     execution_count: int = 0,
-    remove_code_output: bool = True,
+    remove_outputs: bool = True,
     format: bool = True,
     reorder_imports: bool = True,
     indent_level: int = 4,
@@ -47,7 +47,7 @@ def run(
     :param Sequence[Path] files: file(s) to be formatted
     :param Sequence[Path] exclude_files: file(s) to be excluded from formatting
     :param int execution_count: sets execution count. If the integer is greater than zero the count will be printed, else `null` will be printed. Defaults to 0.
-    :param bool remove_code_output: remove output from code cells, defaults to True
+    :param bool remove_outputs: remove output from code cells, defaults to True
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
     :param int indent_level: integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.
@@ -78,7 +78,7 @@ def run(
                     cell["execution_count"] = (
                         execution_count if execution_count > 0 else "null"
                     )
-                    if remove_code_output:
+                    if remove_outputs:
                         cell["outputs"] = []
 
                     if format:
@@ -220,16 +220,14 @@ def parse_pyproject() -> (
     if isinstance(exclude_files_or_dirs, str):
         exclude_files_or_dirs = [exclude_files_or_dirs]
     execution_count = config["execution_count"] if "execution_count" in config else None
-    remove_code_output = (
-        config["remove_code_output"] if "remove_code_output" in config else None
-    )
+    remove_outputs = config["remove_outputs"] if "remove_outputs" in config else None
     format = config["format"] if "format" in config else None
     reorder_imports = config["reorder_imports"] if "reorder_imports" in config else None
     indent_level = config["indent_level"] if "indent_level" in config else None
     return (
         files_or_dirs,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,
@@ -264,7 +262,7 @@ def parse_args():
         help="Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.",
     )
     parser.add_argument(
-        "--remove_code_output",
+        "--remove_outputs",
         action="store_false",
         help="Remove output of cell",
     )
@@ -287,7 +285,7 @@ def parse_args():
     return (
         args.files_or_dirs,
         args.execution_count,
-        args.remove_code_output,
+        args.remove_outputs,
         args.format,
         args.reorder_imports,
         args.indent_level,
@@ -311,7 +309,7 @@ def get_lab_files(files_or_dirs: List[Path]) -> List[Path]:
 def process_inputs(
     args_files_or_dirs: List[str],
     args_execution_count: int,
-    args_remove_code_output: bool,
+    args_remove_outputs: bool,
     args_format: bool,
     args_reorder_imports: bool,
     args_indent_level: int,
@@ -319,7 +317,7 @@ def process_inputs(
     args_ignore_pyproject: bool,
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
-    project_remove_code_output: Union[bool, None],
+    project_remove_outputs: Union[bool, None],
     project_format: Union[bool, None],
     project_reorder_imports: Union[bool, None],
     project_indent_level: Union[int, None],
@@ -330,13 +328,13 @@ def process_inputs(
     :param List[str] args_files_or_dirs: files or directories from argparse
     :param List[str] args_exclude_files_or_dirs: files or directories to exclude from argparse
     :param int args_execution_count: execution count from argparse
-    :param bool args_remove_code_output: remove code output from argparse
+    :param bool args_remove_outputs: remove code output from argparse
     :param bool args_format: apply formatting from argparse
     :param bool args_reorder_imports: reorder imports from argparse
     :param Union[List[str], str, None] project_files_or_dirs: files or directories from pyproject
     :param Union[List[str], str, None] project_exclude_files_or_dirs: files or directories to exclude from pyproject
     :param Union[int, None] project_execution_count: execution count from pyproject
-    :param Union[bool, None] project_remove_code_output: remove code output from pyproject
+    :param Union[bool, None] project_remove_outputs: remove code output from pyproject
     :param Union[bool, None] project_format: apply formatting from pyproject
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
@@ -344,7 +342,7 @@ def process_inputs(
     if args_ignore_pyproject:
         project_files_or_dirs = None
         project_execution_count = None
-        project_remove_code_output = None
+        project_remove_outputs = None
         project_format = None
         project_reorder_imports = None
         project_indent_level = None
@@ -371,10 +369,10 @@ def process_inputs(
         if project_execution_count is not None
         else args_execution_count
     )
-    remove_code_output = (
-        project_remove_code_output
-        if project_remove_code_output is not None
-        else args_remove_code_output
+    remove_outputs = (
+        project_remove_outputs
+        if project_remove_outputs is not None
+        else args_remove_outputs
     )
     format = project_format if project_format is not None else args_format
     reorder_imports = (
@@ -389,7 +387,7 @@ def process_inputs(
     return (
         files_or_dirs,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,
@@ -401,7 +399,7 @@ def main():
     (
         args_files_or_dirs,
         args_execution_count,
-        args_remove_code_output,
+        args_remove_outputs,
         args_format,
         args_reorder_imports,
         args_indent_level,
@@ -412,7 +410,7 @@ def main():
     (
         project_files_or_dirs,
         project_execution_count,
-        project_remove_code_output,
+        project_remove_outputs,
         project_format,
         project_reorder_imports,
         project_indent_level,
@@ -422,7 +420,7 @@ def main():
     (
         files_or_dirs,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,
@@ -430,7 +428,7 @@ def main():
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
-        args_remove_code_output,
+        args_remove_outputs,
         args_format,
         args_reorder_imports,
         args_indent_level,
@@ -438,7 +436,7 @@ def main():
         args_ignore_pyproject,
         project_files_or_dirs,
         project_execution_count,
-        project_remove_code_output,
+        project_remove_outputs,
         project_format,
         project_reorder_imports,
         project_indent_level,
@@ -451,7 +449,7 @@ def main():
     run(
         files,
         execution_count,
-        remove_code_output,
+        remove_outputs,
         format,
         reorder_imports,
         indent_level,
