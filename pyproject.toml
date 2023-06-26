@@ -20,6 +20,7 @@ tox = "^4.6.3"
 flake8 = "^6.0.0"
 pytest = "^7.3.2"
 pre-commit = "^3.3.3"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -37,6 +38,13 @@ indent_level=4
 
 [tool.pytest.ini_options]
 testpaths = "tests"
+addopts = [
+    "--cov=jupyter_cleaner",
+    "--cov-fail-under=90",
+    "--cov-report=term-missing",
+    "--cov-report=term",
+    "--cov-report="
+]
 
 [tool.tox]
 # run in parent (pwsh) shell before tox: pyenv local 3.8.10, 3.9.13, 3.10.10, 3.11.2
@@ -53,6 +61,7 @@ isolated_build = true
 [testenv]
 deps =
     pytest
+    pytest-cov
 setenv =
     PYTHONPATH = {toxinidir}
 commands =
