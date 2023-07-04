@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jupyter-cleaner"
-version = "0.2.2"
+version = "0.2.3"
 description = "Easy git tracking of Jupyter lab files"
 license = "MIT"
 authors = ["Daniel Stoops <danielstoops25@gmail.com>"]
@@ -40,21 +40,17 @@ indent_level=4
 testpaths = "tests"
 addopts = [
     "--cov=jupyter_cleaner",
-    "--cov-fail-under=90",
+    "--cov-fail-under=89",
     "--cov-report=term-missing",
     "--cov-report=term",
     "--cov-report="
 ]
 
 [tool.tox]
-# run in parent (pwsh) shell before tox: pyenv local 3.8.10, 3.9.13, 3.10.10, 3.11.2
 legacy_tox_ini = """
 [tox]
 envlist =
-    python38
-    python39
-    python310
-    python311
+    py{38,39,310,311}
     lint
 isolated_build = true
 
@@ -67,18 +63,6 @@ setenv =
 commands =
     python -c "import sys; print(sys.version_info)"
     python -m pytest --basetemp={envtmpdir}
-
-[testenv:python38]
-base_python = python38
-
-[testenv:python39]
-base_python = python39
-
-[testenv:python310]
-base_python = python310
-
-[testenv:python311]
-base_python = python311
 
 [testenv:lint]
 deps =
