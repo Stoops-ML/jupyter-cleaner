@@ -1155,3 +1155,143 @@ def test_pyroject() -> None:
         formatted_data = json.load(f)
     assert formatted_data == expected_result
     os.unlink(nb_file)
+
+
+def test_end_of_file() -> None:
+    data = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "outputs": [
+                    {
+                        "data": {
+                            "text/html": [
+                                "\n",
+                                '                <script type="application/javascript" id="jupyter_reorder_python_imports">\n',
+                                "                (function() {\n",
+                                "                    if (window.IPython === undefined) {\n",
+                                "                        return\n",
+                                "                    }\n",
+                                '                    var msg = "WARNING: it looks like you might have loaded " +\n',
+                                '                        "jupyter_reorder_python_imports in a non-lab notebook with " +\n',
+                                '                        "`is_lab=True`. Please double check, and if " +\n',
+                                '                        "loading with `%load_ext` please review the README!"\n',
+                                "                    console.log(msg)\n",
+                                "                    alert(msg)\n",
+                                "                })()\n",
+                                "                </script>\n",
+                                "                ",
+                            ],
+                            "text/plain": ["<IPython.core.display.HTML object>"],
+                        },
+                        "metadata": {},
+                        "output_type": "display_data",
+                    }
+                ],
+                "source": [
+                    "%load_ext jupyter_reorder_python_imports\n",
+                    "%load_ext jupyter_black",
+                ],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 5,
+                "metadata": {},
+                "outputs": [],
+                "source": ["import re\n", "import datetime"],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 10,
+                "metadata": {},
+                "outputs": [
+                    {
+                        "data": {"text/plain": ["1"]},
+                        "execution_count": 4,
+                        "metadata": {},
+                        "output_type": "execute_result",
+                    }
+                ],
+                "source": ["a=1\na"],
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "jreorder-1i-52Iue",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {
+                "codemirror_mode": {"name": "ipython", "version": 3},
+                "file_extension": ".py",
+                "mimetype": "text/x-python",
+                "name": "python",
+                "nbconvert_exporter": "python",
+                "pygments_lexer": "ipython3",
+                "version": "3.10.10",
+            },
+            "orig_nbformat": 4,
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2,
+    }
+    expected_result = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": "null",
+                "metadata": {},
+                "outputs": [],
+                "source": [
+                    "%load_ext jupyter_reorder_python_imports\n",
+                    "%load_ext jupyter_black",
+                ],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": "null",
+                "metadata": {},
+                "outputs": [],
+                "source": ["import datetime\n", "import re"],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": "null",
+                "metadata": {},
+                "outputs": [],
+                "source": ["a = 1\n", "a"],
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "jreorder-1i-52Iue",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {
+                "codemirror_mode": {"name": "ipython", "version": 3},
+                "file_extension": ".py",
+                "mimetype": "text/x-python",
+                "name": "python",
+                "nbconvert_exporter": "python",
+                "pygments_lexer": "ipython3",
+                "version": "3.10.10",
+            },
+            "orig_nbformat": 4,
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2,
+    }
+
+    file = tempfile.NamedTemporaryFile(suffix=".ipynb", delete=False)
+    with open(file.name, "w") as f:
+        json.dump(data, f)
+    with mock.patch.object(sys, "argv", ["jupyter-cleaner", file.name]):
+        main()
+    with open(file.name) as f:
+        formatted_data = json.load(f)
+    assert formatted_data == expected_result
+    with open(file.name) as f:
+        assert f.read()[-1] == "\n"

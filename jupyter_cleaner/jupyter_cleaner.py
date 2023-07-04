@@ -122,7 +122,7 @@ def run(
                 continue
 
         with open(file, "w") as f:
-            json.dump(data, f, indent=indent_level)
+            f.write(json.dumps(data, indent=indent_level) + "\n")
         print(f"Reformatted {str(file)}")
 
 
