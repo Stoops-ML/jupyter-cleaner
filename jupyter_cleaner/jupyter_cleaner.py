@@ -40,6 +40,7 @@ def run(
     reorder_imports: bool = True,
     indent_level: int = 4,
     exclude_files: Sequence[Path] = [],
+    remove_empty_cells: bool = True,
     black_config: Optional[Dict[str, str]] = None,
 ) -> None:
     """Format Jupyter lab files.
@@ -51,6 +52,7 @@ def run(
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
     :param int indent_level: integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.
+    :param bool remove_empty_cells: remove empty cells from notebook.
     :param Optional[Dict[str, str]] black_config: configuration from black formatting, defaults to None
     :raises TypeError: when file input is unrecognised
     """
@@ -83,6 +85,10 @@ def run(
                     and not is_source_empty
                     and cell["source"][0].strip() == "!"
                 )
+
+                if remove_empty_cells and is_source and is_source_empty:
+                    data["cells"].remove(cell)
+                    continue
 
                 if execution_count >= 0 and "execution_count" in cell.keys():
                     cell["execution_count"] = (
@@ -206,6 +212,7 @@ def parse_pyproject(
     Union[bool, None],
     Union[int, None],
     Union[List[str], str, None],
+    Union[bool, None],
 ]:
     """Parse inputs from pyproject.toml
 
@@ -215,6 +222,7 @@ def parse_pyproject(
     pyproject_path = project_root / "pyproject.toml"
     if not pyproject_path.exists() or ignore_pyproject:
         return (
+            None,
             None,
             None,
             None,
@@ -242,6 +250,9 @@ def parse_pyproject(
     format = config["format"] if "format" in config else None
     reorder_imports = config["reorder_imports"] if "reorder_imports" in config else None
     indent_level = config["indent_level"] if "indent_level" in config else None
+    remove_empty_cells = (
+        config["remove_empty_cells"] if "remove_empty_cells" in config else None
+    )
     return (
         files_or_dirs,
         execution_count,
@@ -250,6 +261,7 @@ def parse_pyproject(
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
     )
 
 
@@ -299,6 +311,11 @@ def parse_args():
         action="store_true",
         help="Argparse will over-ride pyproject. Defaults to false.",
     )
+    parser.add_argument(
+        "--remove_empty_cells",
+        action="store_true",
+        help="Remove cells that are empty. Defaults to false.",
+    )
     args = parser.parse_args()
     return (
         args.files_or_dirs,
@@ -309,6 +326,7 @@ def parse_args():
         args.indent_level,
         args.exclude_files_or_dirs,
         args.ignore_pyproject,
+        args.remove_empty_cells,
     )
 
 
@@ -332,6 +350,7 @@ def process_inputs(
     args_reorder_imports: bool,
     args_indent_level: int,
     args_exclude_files_or_dirs: Union[List[str], None],
+    args_remove_empty_cells: bool,
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_outputs: Union[bool, None],
@@ -339,7 +358,8 @@ def process_inputs(
     project_reorder_imports: Union[bool, None],
     project_indent_level: Union[int, None],
     project_exclude_files_or_dirs: Union[List[str], str, None],
-) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path]]:
+    project_remove_empty_cells: Union[bool, None],
+) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path], bool]:
     """Creates inputs of the right format and prioritises pyproject inputs over argparse inputs, outside of files and directories where all inputs are combined.
 
     :param List[str] args_files_or_dirs: files or directories from argparse
@@ -352,6 +372,8 @@ def process_inputs(
     :param Union[List[str], str, None] project_exclude_files_or_dirs: files or directories to exclude from pyproject
     :param Union[int, None] project_execution_count: execution count from pyproject
     :param Union[bool, None] project_remove_outputs: remove code output from pyproject
+    :param Union[bool, None] args_remove_empty_cells: remove empty cells from argparse
+    :param Union[bool, None] project_remove_empty_cells: remove empty cells from pyproject
     :param Union[bool, None] project_format: apply formatting from pyproject
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
@@ -392,6 +414,11 @@ def process_inputs(
     indent_level = (
         project_indent_level if project_indent_level is not None else args_indent_level
     )
+    remove_empty_cells = (
+        project_remove_empty_cells
+        if project_remove_empty_cells is not None
+        else args_remove_empty_cells
+    )
 
     return (
         files_or_dirs,
@@ -401,6 +428,7 @@ def process_inputs(
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
     )
 
 
@@ -414,6 +442,7 @@ def main():
         args_indent_level,
         args_exclude_files_or_dirs,
         args_ignore_pyproject,
+        args_remove_empty_cells,
     ) = parse_args()
 
     (
@@ -424,6 +453,7 @@ def main():
         project_reorder_imports,
         project_indent_level,
         project_exclude_files_or_dirs,
+        project_remove_empty_cells,
     ) = parse_pyproject(args_ignore_pyproject)
 
     (
@@ -434,6 +464,7 @@ def main():
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
@@ -442,6 +473,7 @@ def main():
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dirs,
+        args_remove_empty_cells,
         project_files_or_dirs,
         project_execution_count,
         project_remove_outputs,
@@ -449,6 +481,7 @@ def main():
         project_reorder_imports,
         project_indent_level,
         project_exclude_files_or_dirs,
+        project_remove_empty_cells,
     )
 
     files = get_lab_files(files_or_dirs)
@@ -462,4 +495,5 @@ def main():
         reorder_imports,
         indent_level,
         exclude_files,
+        remove_empty_cells,
     )
