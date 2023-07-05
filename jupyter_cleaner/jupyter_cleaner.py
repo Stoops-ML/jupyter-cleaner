@@ -74,6 +74,7 @@ def run(
                 min_python_version = min_python_version[:2]
 
             for cell in data["cells"]:
+                is_code = cell["cell_type"] == "code"
                 is_source = "source" in cell.keys()
                 is_source_empty = len(cell["source"]) == 0
 
@@ -85,7 +86,7 @@ def run(
                 if remove_outputs and "outputs" in cell.keys():
                     cell["outputs"] = []
 
-                if format and is_source and not is_source_empty:
+                if format and is_source and not is_source_empty and is_code:
                     try:
                         mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
                         str_cell_content = black.format_cell(
@@ -97,7 +98,7 @@ def run(
                     except black.NothingChanged:
                         pass
 
-                if reorder_imports and is_source and not is_source_empty:
+                if reorder_imports and is_source and not is_source_empty and is_code:
                     to_remove = {
                         import_obj_from_str(s).key
                         for k, v in REMOVALS.items()
