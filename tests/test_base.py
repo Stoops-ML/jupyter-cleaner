@@ -1324,3 +1324,53 @@ def test_no_cell_source() -> None:
     with open(file.name) as f:
         formatted_data = json.load(f)
     assert formatted_data == data
+
+
+def test_markdown_cell() -> None:
+    data = {
+        "cells": [
+            {
+                "attachments": {},
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": ["Markdown text."],
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "jreorder-1i-52Iue",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {
+                "codemirror_mode": {"name": "ipython", "version": 3},
+                "file_extension": ".py",
+                "mimetype": "text/x-python",
+                "name": "python",
+                "nbconvert_exporter": "python",
+                "pygments_lexer": "ipython3",
+                "version": "3.10.10",
+            },
+            "orig_nbformat": 4,
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2,
+    }
+
+    file = tempfile.NamedTemporaryFile(suffix=".ipynb", delete=False)
+    with open(file.name, "w") as f:
+        json.dump(data, f)
+    input_args = [
+        "jupyter-cleaner",
+        file.name,
+        "--format",
+        "--reorder_imports",
+        "--execution_count",
+        "100",
+        "--ignore_pyproject",
+    ]
+    with mock.patch.object(sys, "argv", input_args):
+        main()
+    with open(file.name) as f:
+        formatted_data = json.load(f)
+    assert formatted_data == data
