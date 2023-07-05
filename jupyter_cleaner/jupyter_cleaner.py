@@ -173,24 +173,24 @@ def find_project_root(
     return directory
 
 
-def parse_pyproject() -> (
-    Tuple[
-        Union[List[str], str, None],
-        Union[int, None],
-        Union[bool, None],
-        Union[bool, None],
-        Union[bool, None],
-        Union[int, None],
-        Union[List[str], str, None],
-    ]
-):
+def parse_pyproject(
+    ignore_pyproject: bool,
+) -> Tuple[
+    Union[List[str], str, None],
+    Union[int, None],
+    Union[bool, None],
+    Union[bool, None],
+    Union[bool, None],
+    Union[int, None],
+    Union[List[str], str, None],
+]:
     """Parse inputs from pyproject.toml
 
     :return _type_: Parse inputs from pyproject.toml
     """
     project_root = find_project_root((str(Path.cwd().resolve()),))
     pyproject_path = project_root / "pyproject.toml"
-    if not pyproject_path.exists():
+    if not pyproject_path.exists() or ignore_pyproject:
         return (
             None,
             None,
@@ -309,7 +309,6 @@ def process_inputs(
     args_reorder_imports: bool,
     args_indent_level: int,
     args_exclude_files_or_dirs: Union[List[str], None],
-    args_ignore_pyproject: bool,
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_outputs: Union[bool, None],
@@ -334,14 +333,6 @@ def process_inputs(
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
     """
-    if args_ignore_pyproject:
-        project_files_or_dirs = None
-        project_execution_count = None
-        project_remove_outputs = None
-        project_format = None
-        project_reorder_imports = None
-        project_indent_level = None
-        project_exclude_files_or_dirs = None
 
     if args_files_or_dirs is None:
         args_files_or_dirs = [Path.cwd().resolve()]
@@ -410,7 +401,7 @@ def main():
         project_reorder_imports,
         project_indent_level,
         project_exclude_files_or_dirs,
-    ) = parse_pyproject()
+    ) = parse_pyproject(args_ignore_pyproject)
 
     (
         files_or_dirs,
@@ -428,7 +419,6 @@ def main():
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dirs,
-        args_ignore_pyproject,
         project_files_or_dirs,
         project_execution_count,
         project_remove_outputs,
