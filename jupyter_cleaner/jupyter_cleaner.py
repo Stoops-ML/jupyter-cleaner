@@ -77,6 +77,12 @@ def run(
                 is_code = cell["cell_type"] == "code"
                 is_source = "source" in cell.keys()
                 is_source_empty = len(cell["source"]) == 0
+                is_shell_command = (
+                    is_code
+                    and is_source
+                    and not is_source_empty
+                    and cell["source"][0].strip() == "!"
+                )
 
                 if execution_count >= 0 and "execution_count" in cell.keys():
                     cell["execution_count"] = (
@@ -86,7 +92,13 @@ def run(
                 if remove_outputs and "outputs" in cell.keys():
                     cell["outputs"] = []
 
-                if format and is_source and not is_source_empty and is_code:
+                if (
+                    format
+                    and is_source
+                    and not is_source_empty
+                    and is_code
+                    and not is_shell_command
+                ):
                     try:
                         mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
                         str_cell_content = black.format_cell(
@@ -98,7 +110,13 @@ def run(
                     except black.NothingChanged:
                         pass
 
-                if reorder_imports and is_source and not is_source_empty and is_code:
+                if (
+                    reorder_imports
+                    and is_source
+                    and not is_source_empty
+                    and is_code
+                    and not is_shell_command
+                ):
                     to_remove = {
                         import_obj_from_str(s).key
                         for k, v in REMOVALS.items()
