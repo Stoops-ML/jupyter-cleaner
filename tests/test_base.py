@@ -88,62 +88,17 @@ def test_defaults() -> None:
         "nbformat": 4,
         "nbformat_minor": 2,
     }
-    expected_result = {
-        "cells": [
-            {
-                "cell_type": "code",
-                "execution_count": "null",
-                "metadata": {},
-                "outputs": [],
-                "source": [
-                    "%load_ext jupyter_reorder_python_imports\n",
-                    "%load_ext jupyter_black",
-                ],
-            },
-            {
-                "cell_type": "code",
-                "execution_count": "null",
-                "metadata": {},
-                "outputs": [],
-                "source": ["import datetime\n", "import re"],
-            },
-            {
-                "cell_type": "code",
-                "execution_count": "null",
-                "metadata": {},
-                "outputs": [],
-                "source": ["a = 1\n", "a"],
-            },
-        ],
-        "metadata": {
-            "kernelspec": {
-                "display_name": "jreorder-1i-52Iue",
-                "language": "python",
-                "name": "python3",
-            },
-            "language_info": {
-                "codemirror_mode": {"name": "ipython", "version": 3},
-                "file_extension": ".py",
-                "mimetype": "text/x-python",
-                "name": "python",
-                "nbconvert_exporter": "python",
-                "pygments_lexer": "ipython3",
-                "version": "3.10.10",
-            },
-            "orig_nbformat": 4,
-        },
-        "nbformat": 4,
-        "nbformat_minor": 2,
-    }
 
     file = tempfile.NamedTemporaryFile(suffix=".ipynb", delete=False)
     with open(file.name, "w") as f:
         json.dump(data, f)
-    with mock.patch.object(sys, "argv", ["jupyter-cleaner", file.name]):
+    with mock.patch.object(
+        sys, "argv", ["jupyter-cleaner", file.name, "--ignore_pyproject"]
+    ):
         main()
     with open(file.name) as f:
         formatted_data = json.load(f)
-    assert formatted_data == expected_result
+    assert formatted_data == data
 
 
 def test_execution_count() -> None:

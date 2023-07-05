@@ -247,7 +247,7 @@ def parse_args():
     parser.add_argument(
         "--execution_count",
         type=int,
-        default=0,
+        default=-1,
         help="Number to set for the execution count of every cell. A negative integer doesn't replace the execution count and 0 is replaced with null. Defaults to 0.",
     )
     parser.add_argument(
