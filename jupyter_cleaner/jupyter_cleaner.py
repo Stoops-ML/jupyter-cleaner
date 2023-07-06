@@ -42,6 +42,7 @@ def run(
     exclude_files: Sequence[Path] = [],
     remove_empty_cells: bool = True,
     clear_cell_metadata: bool = True,
+    preserve_cell_metadata: Sequence[str] = [],
     black_config: Optional[Dict[str, str]] = None,
 ) -> None:
     """Format Jupyter lab files.
@@ -151,6 +152,13 @@ def run(
                 if clear_cell_metadata and is_code and is_metadata:
                     cell["metadata"] = {}
 
+                if len(preserve_cell_metadata) > 0 and is_metadata and is_code:
+                    cell["metadata"] = {
+                        k: v
+                        for k, v in cell["metadata"].items()
+                        if k in preserve_cell_metadata
+                    }
+
         with open(file) as f:
             original_data = json.load(f)
             if data == original_data:
@@ -220,6 +228,7 @@ def parse_pyproject(
     Union[List[str], str, None],
     Union[bool, None],
     Union[bool, None],
+    Union[List[str], str, None],
 ]:
     """Parse inputs from pyproject.toml
 
@@ -229,6 +238,7 @@ def parse_pyproject(
     pyproject_path = project_root / "pyproject.toml"
     if not pyproject_path.exists() or ignore_pyproject:
         return (
+            None,
             None,
             None,
             None,
@@ -264,6 +274,9 @@ def parse_pyproject(
     clear_cell_metadata = (
         config["clear_cell_metadata"] if "clear_cell_metadata" in config else None
     )
+    preserve_cell_metadata = (
+        config["preserve_cell_metadata"] if "preserve_cell_metadata" in config else None
+    )
     return (
         files_or_dirs,
         execution_count,
@@ -274,6 +287,7 @@ def parse_pyproject(
         exclude_files_or_dirs,
         remove_empty_cells,
         clear_cell_metadata,
+        preserve_cell_metadata,
     )
 
 
@@ -333,6 +347,12 @@ def parse_args():
         action="store_true",
         help="Clear cell metadata. Defaults to false.",
     )
+    parser.add_argument(
+        "--preserve_cell_metadata",
+        type=str,
+        nargs="+",
+        help="List of keys to preserve in cell metadata.",
+    )
     args = parser.parse_args()
     return (
         args.files_or_dirs,
@@ -345,6 +365,7 @@ def parse_args():
         args.ignore_pyproject,
         args.remove_empty_cells,
         args.clear_cell_metadata,
+        args.preserve_cell_metadata,
     )
 
 
@@ -370,6 +391,7 @@ def process_inputs(
     args_exclude_files_or_dirs: Union[List[str], None],
     args_remove_empty_cells: bool,
     args_clear_cell_metadata: bool,
+    args_preserve_cell_metadata: Union[List[str], None],
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_outputs: Union[bool, None],
@@ -379,7 +401,8 @@ def process_inputs(
     project_exclude_files_or_dirs: Union[List[str], str, None],
     project_remove_empty_cells: Union[bool, None],
     project_clear_cell_metadata: Union[bool, None],
-) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path], bool, bool]:
+    project_preserve_cell_metadata: Union[List[str], str, None],
+) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path], bool, bool, List[str]]:
     """Creates inputs of the right format and prioritises pyproject inputs over argparse inputs, outside of files and directories where all inputs are combined.
 
     :param List[str] args_files_or_dirs: files or directories from argparse
@@ -444,6 +467,15 @@ def process_inputs(
         if project_clear_cell_metadata is not None
         else args_clear_cell_metadata
     )
+    if project_preserve_cell_metadata is None:
+        project_preserve_cell_metadata = []
+    elif isinstance(project_preserve_cell_metadata, str):
+        project_preserve_cell_metadata = [project_preserve_cell_metadata]
+    if args_preserve_cell_metadata is None:
+        args_preserve_cell_metadata = []
+    preserve_cell_metadata = (
+        project_preserve_cell_metadata + args_preserve_cell_metadata
+    )
 
     return (
         files_or_dirs,
@@ -455,6 +487,7 @@ def process_inputs(
         exclude_files_or_dirs,
         remove_empty_cells,
         clear_cell_metadata,
+        preserve_cell_metadata,
     )
 
 
@@ -470,6 +503,7 @@ def main():
         args_ignore_pyproject,
         args_remove_empty_cells,
         args_clear_cell_metadata,
+        args_preserve_cell_metadata,
     ) = parse_args()
 
     (
@@ -482,6 +516,7 @@ def main():
         project_exclude_files_or_dirs,
         project_remove_empty_cells,
         project_clear_cell_metadata,
+        project_preserve_cell_metadata,
     ) = parse_pyproject(args_ignore_pyproject)
 
     (
@@ -494,6 +529,7 @@ def main():
         exclude_files_or_dirs,
         remove_empty_cells,
         clear_cell_metadata,
+        preserve_cell_metadata,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
@@ -504,6 +540,7 @@ def main():
         args_exclude_files_or_dirs,
         args_remove_empty_cells,
         args_clear_cell_metadata,
+        args_preserve_cell_metadata,
         project_files_or_dirs,
         project_execution_count,
         project_remove_outputs,
@@ -513,6 +550,7 @@ def main():
         project_exclude_files_or_dirs,
         project_remove_empty_cells,
         project_clear_cell_metadata,
+        project_preserve_cell_metadata,
     )
 
     files = get_lab_files(files_or_dirs)
@@ -528,4 +566,5 @@ def main():
         exclude_files,
         remove_empty_cells,
         clear_cell_metadata,
+        preserve_cell_metadata,
     )
