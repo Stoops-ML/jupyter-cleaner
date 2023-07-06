@@ -87,6 +87,7 @@ def run(
                     and not is_source_empty
                     and cell["source"][0].strip() == "!"
                 )
+                is_metadata = "metadata" in cell.keys()
 
                 if remove_empty_cells and is_source and is_source_empty:
                     data["cells"].remove(cell)
@@ -147,7 +148,7 @@ def run(
                     cell_content[-1] = cell_content[-1][:-1]
                     cell["source"] = cell_content
 
-                if clear_cell_metadata and is_code:
+                if clear_cell_metadata and is_code and is_metadata:
                     cell["metadata"] = {}
 
         with open(file) as f:
