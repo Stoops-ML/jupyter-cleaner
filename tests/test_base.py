@@ -414,6 +414,142 @@ def test_clear_cell_metadata() -> None:
     assert formatted_data == expected_result
 
 
+def test_preserve_cell_metadata() -> None:
+    data = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {"collapsed": True, "editable": False},
+                "outputs": [
+                    {
+                        "data": {
+                            "text/html": [
+                                "\n",
+                                '                <script type="application/javascript" id="jupyter_reorder_python_imports">\n',
+                                "                (function() {\n",
+                                "                    if (window.IPython === undefined) {\n",
+                                "                        return\n",
+                                "                    }\n",
+                                '                    var msg = "WARNING: it looks like you might have loaded " +\n',
+                                '                        "jupyter_reorder_python_imports in a non-lab notebook with " +\n',
+                                '                        "`is_lab=True`. Please double check, and if " +\n',
+                                '                        "loading with `%load_ext` please review the README!"\n',
+                                "                    console.log(msg)\n",
+                                "                    alert(msg)\n",
+                                "                })()\n",
+                                "                </script>\n",
+                                "                ",
+                            ],
+                            "text/plain": ["<IPython.core.display.HTML object>"],
+                        },
+                        "metadata": {},
+                        "output_type": "display_data",
+                    }
+                ],
+                "source": [
+                    "%load_ext jupyter_reorder_python_imports\n",
+                    "%load_ext jupyter_black",
+                ],
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "jreorder-1i-52Iue",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {
+                "codemirror_mode": {"name": "ipython", "version": 3},
+                "file_extension": ".py",
+                "mimetype": "text/x-python",
+                "name": "python",
+                "nbconvert_exporter": "python",
+                "pygments_lexer": "ipython3",
+                "version": "3.10.10",
+            },
+            "orig_nbformat": 4,
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2,
+    }
+
+    expected_result = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {"collapsed": True},
+                "outputs": [
+                    {
+                        "data": {
+                            "text/html": [
+                                "\n",
+                                '                <script type="application/javascript" id="jupyter_reorder_python_imports">\n',
+                                "                (function() {\n",
+                                "                    if (window.IPython === undefined) {\n",
+                                "                        return\n",
+                                "                    }\n",
+                                '                    var msg = "WARNING: it looks like you might have loaded " +\n',
+                                '                        "jupyter_reorder_python_imports in a non-lab notebook with " +\n',
+                                '                        "`is_lab=True`. Please double check, and if " +\n',
+                                '                        "loading with `%load_ext` please review the README!"\n',
+                                "                    console.log(msg)\n",
+                                "                    alert(msg)\n",
+                                "                })()\n",
+                                "                </script>\n",
+                                "                ",
+                            ],
+                            "text/plain": ["<IPython.core.display.HTML object>"],
+                        },
+                        "metadata": {},
+                        "output_type": "display_data",
+                    }
+                ],
+                "source": [
+                    "%load_ext jupyter_reorder_python_imports\n",
+                    "%load_ext jupyter_black",
+                ],
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "jreorder-1i-52Iue",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {
+                "codemirror_mode": {"name": "ipython", "version": 3},
+                "file_extension": ".py",
+                "mimetype": "text/x-python",
+                "name": "python",
+                "nbconvert_exporter": "python",
+                "pygments_lexer": "ipython3",
+                "version": "3.10.10",
+            },
+            "orig_nbformat": 4,
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2,
+    }
+
+    file = tempfile.NamedTemporaryFile(suffix=".ipynb", delete=False)
+    with open(file.name, "w") as f:
+        json.dump(data, f)
+    input_args = [
+        "jupyter-cleaner",
+        file.name,
+        "--preserve_cell_metadata",
+        "collapsed",
+        "--ignore_pyproject",
+    ]
+    with mock.patch.object(sys, "argv", input_args):
+        main()
+    with open(file.name) as f:
+        formatted_data = json.load(f)
+    assert formatted_data == expected_result
+
+
 def test_remove_empty_cells() -> None:
     data = {
         "cells": [
