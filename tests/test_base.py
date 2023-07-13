@@ -10,12 +10,13 @@ from jupyter_cleaner.jupyter_cleaner import main
 
 
 def test_defaults() -> None:
+    """Default behaviour is to not edit the original notebook"""
     data = {
         "cells": [
             {
                 "cell_type": "code",
                 "execution_count": 1,
-                "metadata": {},
+                "metadata": {"collapsed": True},
                 "outputs": [
                     {
                         "data": {
@@ -67,6 +68,20 @@ def test_defaults() -> None:
                     }
                 ],
                 "source": ["a=1\na"],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 10,
+                "metadata": {},
+                "outputs": [
+                    {
+                        "data": {"text/plain": ["1"]},
+                        "execution_count": 4,
+                        "metadata": {},
+                        "output_type": "execute_result",
+                    }
+                ],
+                "source": [],
             },
         ],
         "metadata": {
