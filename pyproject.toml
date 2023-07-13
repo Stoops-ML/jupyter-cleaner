@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jupyter-cleaner"
-version = "0.2.3"
+version = "0.3.0"
 description = "Easy git tracking of Jupyter lab files"
 license = "MIT"
 authors = ["Daniel Stoops <danielstoops25@gmail.com>"]
