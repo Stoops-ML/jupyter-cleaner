@@ -14,8 +14,9 @@ It is recommended to run jupyter-cleaner before adding the Jupyter lab files to 
 ## CLI
 running `jupyter-cleaner -h` displays:
 ```
-usage: jupyter-cleaner [-h] [--exclude_files_or_dirs EXCLUDE_FILES_OR_DIRS [EXCLUDE_FILES_OR_DIRS ...]] [--execution_count EXECUTION_COUNT]
-                       [--indent_level INDENT_LEVEL] [--remove_outputs] [--format] [--reorder_imports] [--ignore_pyproject]
+usage: jupyter-cleaner [-h] [--exclude_files_or_dirs EXCLUDE_FILES_OR_DIRS [EXCLUDE_FILES_OR_DIRS ...]] [--execution_count EXECUTION_COUNT] [--indent_level INDENT_LEVEL] [--remove_outputs] [--format]
+                       [--reorder_imports] [--ignore_pyproject] [--remove_empty_cells] [--clear_cell_metadata] [--preserve_cell_metadata PRESERVE_CELL_METADATA [PRESERVE_CELL_METADATA ...]]
+                       [--ignore_fails]
                        files_or_dirs [files_or_dirs ...]
 
 jupyter_cleaner
@@ -28,14 +29,19 @@ options:
   --exclude_files_or_dirs EXCLUDE_FILES_OR_DIRS [EXCLUDE_FILES_OR_DIRS ...]
                         Jupyter lab files or directories to exclude from formatting and search
   --execution_count EXECUTION_COUNT
-                        Number to set for the execution count of every cell. Defaults to 0.
+                        Number to set for the execution count of every cell. A negative integer doesn't replace the execution count and 0 is replaced with null. Defaults to 0.
   --indent_level INDENT_LEVEL
-                        Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative
-                        will only insert newlines.. Defaults to 4.
+                        Integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.. Defaults to 4.
   --remove_outputs      Remove output of cell. Defaults to false.
   --format              Format code of every cell (uses black). Defaults to false.
   --reorder_imports     Reorder imports of every cell (uses reorder-python-imports). Defaults to false.
   --ignore_pyproject    Argparse will over-ride pyproject. Defaults to false.
+  --remove_empty_cells  Remove cells that are empty. Defaults to false.
+  --clear_cell_metadata
+                        Clear cell metadata. Defaults to false.
+  --preserve_cell_metadata PRESERVE_CELL_METADATA [PRESERVE_CELL_METADATA ...]
+                        List of keys to preserve in cell metadata.
+  --ignore_fails        Continue execution despite failures. Defaults to false.
 ```
 
 ## pyproject.toml
