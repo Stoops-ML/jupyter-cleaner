@@ -13,13 +13,13 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
-import black  # type: ignore
-from reorder_python_imports import _validate_replace_import  # type: ignore
-from reorder_python_imports import fix_file_contents  # type: ignore
-from reorder_python_imports import import_obj_from_str  # type: ignore
-from reorder_python_imports import REMOVALS  # type: ignore
-from reorder_python_imports import Replacements  # type: ignore
-from reorder_python_imports import REPLACES  # type: ignore
+import black
+from reorder_python_imports import _validate_replace_import
+from reorder_python_imports import fix_file_contents
+from reorder_python_imports import import_obj_from_str
+from reorder_python_imports import REMOVALS
+from reorder_python_imports import Replacements
+from reorder_python_imports import REPLACES
 
 if sys.version_info >= (3, 11):
     try:
@@ -40,6 +40,10 @@ def run(
     reorder_imports: bool = True,
     indent_level: int = 4,
     exclude_files: Sequence[Path] = [],
+    remove_empty_cells: bool = True,
+    clear_cell_metadata: bool = True,
+    preserve_cell_metadata: Sequence[str] = [],
+    ignore_fails: bool = False,
     black_config: Optional[Dict[str, str]] = None,
 ) -> None:
     """Format Jupyter lab files.
@@ -51,6 +55,8 @@ def run(
     :param bool format: format cells using black, defaults to True
     :param bool reorder_imports: reorder imports using reoder-python-imports, defaults to True
     :param int indent_level: integer greater than zero will pretty-print the JSON array with that indent level. An indent level of 0 or negative will only insert newlines.
+    :param bool remove_empty_cells: remove empty cells from notebook.
+    :param bool clear_cell_metadata: remove metadata from cells from notebook.
     :param Optional[Dict[str, str]] black_config: configuration from black formatting, defaults to None
     :raises TypeError: when file input is unrecognised
     """
@@ -58,72 +64,124 @@ def run(
         black_config = {}
 
     for file in files:
-        if (
-            not file.is_file()
-            or not file.exists()
-            or file.suffix != ".ipynb"
-            or file in exclude_files
-        ):
-            continue
-
-        with open(file) as f:
-            data = json.load(f)
-            python_version = data["metadata"]["language_info"]["version"]
-            min_python_version = tuple(map(int, re.findall(r"(\d+)", python_version)))
-            if len(min_python_version) > 2:
-                min_python_version = min_python_version[:2]
-
-            for cell in data["cells"]:
-                if execution_count >= 0 and "execution_count" in cell.keys():
-                    cell["execution_count"] = (
-                        execution_count if execution_count > 0 else "null"
-                    )
-                if remove_outputs and "outputs" in cell.keys():
-                    cell["outputs"] = []
-
-                if format and "source" in cell.keys():
-                    try:
-                        mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
-                        str_cell_content = black.format_cell(
-                            "".join(cell["source"]), mode=mode, fast=False
-                        )
-                        cell_content = [f"{c}\n" for c in str_cell_content.split("\n")]
-                        cell_content[-1] = cell_content[-1][:-1]  # remove last newline
-                        cell["source"] = cell_content
-                    except black.NothingChanged:
-                        pass
-
-                if reorder_imports and "source" in cell.keys():
-                    to_remove = {
-                        import_obj_from_str(s).key
-                        for k, v in REMOVALS.items()
-                        if min_python_version >= k
-                        for s in v
-                    }
-                    replace_import: List[str] = []
-                    for k, v in REPLACES.items():
-                        if min_python_version >= k:
-                            replace_import.extend(
-                                _validate_replace_import(replace_s) for replace_s in v
-                            )
-                    to_replace = Replacements.make(replace_import)
-                    str_cell_content = fix_file_contents(
-                        "".join(cell["source"]),
-                        to_replace=to_replace,
-                        to_remove=to_remove,
-                    )[:-1]
-                    cell_content = [f"{c}\n" for c in str_cell_content.split("\n")]
-                    cell_content[-1] = cell_content[-1][:-1]
-                    cell["source"] = cell_content
-
-        with open(file) as f:
-            original_data = json.load(f)
-            if data == original_data:
+        try:
+            if (
+                not file.is_file()
+                or not file.exists()
+                or file.suffix != ".ipynb"
+                or file in exclude_files
+            ):
                 continue
 
-        with open(file, "w") as f:
-            f.write(json.dumps(data, indent=indent_level) + "\n")
-        print(f"Reformatted {str(file)}")
+            with open(file) as f:
+                data = json.load(f)
+                python_version = data["metadata"]["language_info"]["version"]
+                min_python_version = tuple(
+                    map(int, re.findall(r"(\d+)", python_version))
+                )
+                if len(min_python_version) > 2:
+                    min_python_version = min_python_version[:2]
+
+                for cell in data["cells"]:
+                    is_code = cell["cell_type"] == "code"
+                    is_source = "source" in cell.keys()
+                    is_source_empty = len(cell["source"]) == 0
+                    is_shell_command = (
+                        is_code
+                        and is_source
+                        and not is_source_empty
+                        and cell["source"][0].strip() == "!"
+                    )
+                    is_metadata = "metadata" in cell.keys()
+
+                    if remove_empty_cells and is_source and is_source_empty:
+                        data["cells"].remove(cell)
+                        continue
+
+                    if execution_count >= 0 and "execution_count" in cell.keys():
+                        cell["execution_count"] = (
+                            execution_count if execution_count > 0 else "null"
+                        )
+
+                    if remove_outputs and "outputs" in cell.keys():
+                        cell["outputs"] = []
+
+                    if (
+                        format
+                        and is_source
+                        and not is_source_empty
+                        and is_code
+                        and not is_shell_command
+                    ):
+                        try:
+                            mode = black.Mode(is_ipynb=True, **black_config)  # type: ignore
+                            str_cell_content = black.format_cell(
+                                "".join(cell["source"]), mode=mode, fast=False
+                            )
+                            cell_content = [
+                                f"{c}\n" for c in str_cell_content.split("\n")
+                            ]
+                            cell_content[-1] = cell_content[-1][
+                                :-1
+                            ]  # remove last newline
+                            cell["source"] = cell_content
+                        except black.NothingChanged:
+                            pass
+
+                    if (
+                        reorder_imports
+                        and is_source
+                        and not is_source_empty
+                        and is_code
+                        and not is_shell_command
+                    ):
+                        to_remove = {
+                            import_obj_from_str(s).key
+                            for k, v in REMOVALS.items()
+                            if min_python_version >= k
+                            for s in v
+                        }
+                        replace_import: List[str] = []
+                        for k, v in REPLACES.items():
+                            if min_python_version >= k:
+                                replace_import.extend(
+                                    _validate_replace_import(replace_s)
+                                    for replace_s in v
+                                )
+                        to_replace = Replacements.make(replace_import)
+                        str_cell_content = fix_file_contents(
+                            "".join(cell["source"]),
+                            to_replace=to_replace,
+                            to_remove=to_remove,
+                        )[:-1]
+                        cell_content = [f"{c}\n" for c in str_cell_content.split("\n")]
+                        cell_content[-1] = cell_content[-1][:-1]
+                        cell["source"] = cell_content
+
+                    if clear_cell_metadata and is_code and is_metadata:
+                        cell["metadata"] = {}
+
+                    if len(preserve_cell_metadata) > 0 and is_metadata and is_code:
+                        cell["metadata"] = {
+                            k: v
+                            for k, v in cell["metadata"].items()
+                            if k in preserve_cell_metadata
+                        }
+
+            with open(file) as f:
+                original_data = json.load(f)
+                if data == original_data:
+                    continue
+
+            with open(file, "w") as f:
+                f.write(json.dumps(data, indent=indent_level) + "\n")
+            print(f"Reformatted {str(file)}")
+        except Exception as e:
+            print(f"Reformatting failed: {str(file)}")
+            if not ignore_fails:
+                raise e
+            else:
+                continue
 
 
 @lru_cache
@@ -173,25 +231,33 @@ def find_project_root(
     return directory
 
 
-def parse_pyproject() -> (
-    Tuple[
-        Union[List[str], str, None],
-        Union[int, None],
-        Union[bool, None],
-        Union[bool, None],
-        Union[bool, None],
-        Union[int, None],
-        Union[List[str], str, None],
-    ]
-):
+def parse_pyproject(
+    ignore_pyproject: bool,
+) -> Tuple[
+    Union[List[str], str, None],
+    Union[int, None],
+    Union[bool, None],
+    Union[bool, None],
+    Union[bool, None],
+    Union[int, None],
+    Union[List[str], str, None],
+    Union[bool, None],
+    Union[bool, None],
+    Union[List[str], str, None],
+    Union[bool, None],
+]:
     """Parse inputs from pyproject.toml
 
     :return _type_: Parse inputs from pyproject.toml
     """
     project_root = find_project_root((str(Path.cwd().resolve()),))
     pyproject_path = project_root / "pyproject.toml"
-    if not pyproject_path.exists():
+    if not pyproject_path.exists() or ignore_pyproject:
         return (
+            None,
+            None,
+            None,
+            None,
             None,
             None,
             None,
@@ -219,6 +285,16 @@ def parse_pyproject() -> (
     format = config["format"] if "format" in config else None
     reorder_imports = config["reorder_imports"] if "reorder_imports" in config else None
     indent_level = config["indent_level"] if "indent_level" in config else None
+    remove_empty_cells = (
+        config["remove_empty_cells"] if "remove_empty_cells" in config else None
+    )
+    clear_cell_metadata = (
+        config["clear_cell_metadata"] if "clear_cell_metadata" in config else None
+    )
+    preserve_cell_metadata = (
+        config["preserve_cell_metadata"] if "preserve_cell_metadata" in config else None
+    )
+    ignore_fails = config["ignore_fails"] if "ignore_fails" in config else None
     return (
         files_or_dirs,
         execution_count,
@@ -227,10 +303,29 @@ def parse_pyproject() -> (
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
+        clear_cell_metadata,
+        preserve_cell_metadata,
+        ignore_fails,
     )
 
 
-def parse_args():
+def parse_args() -> (
+    Tuple[
+        List[str],
+        int,
+        bool,
+        bool,
+        bool,
+        int,
+        Union[None, List[str]],
+        bool,
+        bool,
+        bool,
+        Union[None, List[str]],
+        bool,
+    ]
+):
     parser = argparse.ArgumentParser(description="jupyter_cleaner")
     parser.add_argument(
         "files_or_dirs",
@@ -247,7 +342,7 @@ def parse_args():
     parser.add_argument(
         "--execution_count",
         type=int,
-        default=0,
+        default=-1,
         help="Number to set for the execution count of every cell. A negative integer doesn't replace the execution count and 0 is replaced with null. Defaults to 0.",
     )
     parser.add_argument(
@@ -276,6 +371,27 @@ def parse_args():
         action="store_true",
         help="Argparse will over-ride pyproject. Defaults to false.",
     )
+    parser.add_argument(
+        "--remove_empty_cells",
+        action="store_true",
+        help="Remove cells that are empty. Defaults to false.",
+    )
+    parser.add_argument(
+        "--clear_cell_metadata",
+        action="store_true",
+        help="Clear cell metadata. Defaults to false.",
+    )
+    parser.add_argument(
+        "--preserve_cell_metadata",
+        type=str,
+        nargs="+",
+        help="List of keys to preserve in cell metadata.",
+    )
+    parser.add_argument(
+        "--ignore_fails",
+        action="store_true",
+        help="Continue execution despite failures. Defaults to false.",
+    )
     args = parser.parse_args()
     return (
         args.files_or_dirs,
@@ -286,6 +402,10 @@ def parse_args():
         args.indent_level,
         args.exclude_files_or_dirs,
         args.ignore_pyproject,
+        args.remove_empty_cells,
+        args.clear_cell_metadata,
+        args.preserve_cell_metadata,
+        args.ignore_fails,
     )
 
 
@@ -309,7 +429,10 @@ def process_inputs(
     args_reorder_imports: bool,
     args_indent_level: int,
     args_exclude_files_or_dirs: Union[List[str], None],
-    args_ignore_pyproject: bool,
+    args_remove_empty_cells: bool,
+    args_clear_cell_metadata: bool,
+    args_preserve_cell_metadata: Union[List[str], None],
+    args_ignore_fails: bool,
     project_files_or_dirs: Union[List[str], str, None],
     project_execution_count: Union[int, None],
     project_remove_outputs: Union[bool, None],
@@ -317,7 +440,13 @@ def process_inputs(
     project_reorder_imports: Union[bool, None],
     project_indent_level: Union[int, None],
     project_exclude_files_or_dirs: Union[List[str], str, None],
-) -> Tuple[List[Path], int, bool, bool, bool, int, List[Path]]:
+    project_remove_empty_cells: Union[bool, None],
+    project_clear_cell_metadata: Union[bool, None],
+    project_preserve_cell_metadata: Union[List[str], str, None],
+    project_ignore_fails: Union[bool, None],
+) -> Tuple[
+    List[Path], int, bool, bool, bool, int, List[Path], bool, bool, List[str], bool
+]:
     """Creates inputs of the right format and prioritises pyproject inputs over argparse inputs, outside of files and directories where all inputs are combined.
 
     :param List[str] args_files_or_dirs: files or directories from argparse
@@ -330,18 +459,12 @@ def process_inputs(
     :param Union[List[str], str, None] project_exclude_files_or_dirs: files or directories to exclude from pyproject
     :param Union[int, None] project_execution_count: execution count from pyproject
     :param Union[bool, None] project_remove_outputs: remove code output from pyproject
+    :param Union[bool, None] args_remove_empty_cells: remove empty cells from argparse
+    :param Union[bool, None] project_remove_empty_cells: remove empty cells from pyproject
     :param Union[bool, None] project_format: apply formatting from pyproject
     :param Union[bool, None] project_reorder_imports: reorder imports from pyproject
     :return Tuple[ Union[List[str], str, None], Union[int, None], Union[bool, None], Union[bool, None], Union[bool, None], ]: inputs to run()
     """
-    if args_ignore_pyproject:
-        project_files_or_dirs = None
-        project_execution_count = None
-        project_remove_outputs = None
-        project_format = None
-        project_reorder_imports = None
-        project_indent_level = None
-        project_exclude_files_or_dirs = None
 
     if args_files_or_dirs is None:
         args_files_or_dirs = [Path.cwd().resolve()]
@@ -378,6 +501,28 @@ def process_inputs(
     indent_level = (
         project_indent_level if project_indent_level is not None else args_indent_level
     )
+    remove_empty_cells = (
+        project_remove_empty_cells
+        if project_remove_empty_cells is not None
+        else args_remove_empty_cells
+    )
+    clear_cell_metadata = (
+        project_clear_cell_metadata
+        if project_clear_cell_metadata is not None
+        else args_clear_cell_metadata
+    )
+    if project_preserve_cell_metadata is None:
+        project_preserve_cell_metadata = []
+    elif isinstance(project_preserve_cell_metadata, str):
+        project_preserve_cell_metadata = [project_preserve_cell_metadata]
+    if args_preserve_cell_metadata is None:
+        args_preserve_cell_metadata = []
+    preserve_cell_metadata = (
+        project_preserve_cell_metadata + args_preserve_cell_metadata
+    )
+    ignore_fails = (
+        project_ignore_fails if project_ignore_fails is not None else args_ignore_fails
+    )
 
     return (
         files_or_dirs,
@@ -387,10 +532,14 @@ def process_inputs(
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
+        clear_cell_metadata,
+        preserve_cell_metadata,
+        ignore_fails,
     )
 
 
-def main():
+def main() -> None:
     (
         args_files_or_dirs,
         args_execution_count,
@@ -400,6 +549,10 @@ def main():
         args_indent_level,
         args_exclude_files_or_dirs,
         args_ignore_pyproject,
+        args_remove_empty_cells,
+        args_clear_cell_metadata,
+        args_preserve_cell_metadata,
+        args_ignore_fails,
     ) = parse_args()
 
     (
@@ -410,7 +563,11 @@ def main():
         project_reorder_imports,
         project_indent_level,
         project_exclude_files_or_dirs,
-    ) = parse_pyproject()
+        project_remove_empty_cells,
+        project_clear_cell_metadata,
+        project_preserve_cell_metadata,
+        project_ignore_fails,
+    ) = parse_pyproject(args_ignore_pyproject)
 
     (
         files_or_dirs,
@@ -420,6 +577,10 @@ def main():
         reorder_imports,
         indent_level,
         exclude_files_or_dirs,
+        remove_empty_cells,
+        clear_cell_metadata,
+        preserve_cell_metadata,
+        ignore_fails,
     ) = process_inputs(
         args_files_or_dirs,
         args_execution_count,
@@ -428,7 +589,10 @@ def main():
         args_reorder_imports,
         args_indent_level,
         args_exclude_files_or_dirs,
-        args_ignore_pyproject,
+        args_remove_empty_cells,
+        args_clear_cell_metadata,
+        args_preserve_cell_metadata,
+        args_ignore_fails,
         project_files_or_dirs,
         project_execution_count,
         project_remove_outputs,
@@ -436,6 +600,10 @@ def main():
         project_reorder_imports,
         project_indent_level,
         project_exclude_files_or_dirs,
+        project_remove_empty_cells,
+        project_clear_cell_metadata,
+        project_preserve_cell_metadata,
+        project_ignore_fails,
     )
 
     files = get_lab_files(files_or_dirs)
@@ -449,4 +617,8 @@ def main():
         reorder_imports,
         indent_level,
         exclude_files,
+        remove_empty_cells,
+        clear_cell_metadata,
+        preserve_cell_metadata,
+        ignore_fails,
     )

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jupyter-cleaner"
-version = "0.2.3"
+version = "0.3.0"
 description = "Easy git tracking of Jupyter lab files"
 license = "MIT"
 authors = ["Daniel Stoops <danielstoops25@gmail.com>"]
@@ -40,7 +40,7 @@ indent_level=4
 testpaths = "tests"
 addopts = [
     "--cov=jupyter_cleaner",
-    "--cov-fail-under=89",
+    "--cov-fail-under=90",
     "--cov-report=term-missing",
     "--cov-report=term",
     "--cov-report="
@@ -71,6 +71,6 @@ deps =
     black
 commands =
     python -m flake8 jupyter_cleaner/ tests/
-    python -m mypy jupyter_cleaner/ tests/
+    python -m mypy jupyter_cleaner/ tests/ --check-untyped-defs --disallow-untyped-calls --disallow-untyped-defs --follow-imports silent --ignore-missing-imports --python-version 3.11 --show-column-numbers --warn-redundant-casts --warn-unused-ignores
     python -m black --check --diff .
 """
