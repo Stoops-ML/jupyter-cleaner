@@ -13,13 +13,13 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
-import black  # type: ignore
-from reorder_python_imports import _validate_replace_import  # type: ignore
-from reorder_python_imports import fix_file_contents  # type: ignore
-from reorder_python_imports import import_obj_from_str  # type: ignore
-from reorder_python_imports import REMOVALS  # type: ignore
-from reorder_python_imports import Replacements  # type: ignore
-from reorder_python_imports import REPLACES  # type: ignore
+import black
+from reorder_python_imports import _validate_replace_import
+from reorder_python_imports import fix_file_contents
+from reorder_python_imports import import_obj_from_str
+from reorder_python_imports import REMOVALS
+from reorder_python_imports import Replacements
+from reorder_python_imports import REPLACES
 
 if sys.version_info >= (3, 11):
     try:
@@ -310,7 +310,22 @@ def parse_pyproject(
     )
 
 
-def parse_args():
+def parse_args() -> (
+    Tuple[
+        List[str],
+        int,
+        bool,
+        bool,
+        bool,
+        int,
+        Union[None, List[str]],
+        bool,
+        bool,
+        bool,
+        Union[None, List[str]],
+        bool,
+    ]
+):
     parser = argparse.ArgumentParser(description="jupyter_cleaner")
     parser.add_argument(
         "files_or_dirs",
@@ -524,7 +539,7 @@ def process_inputs(
     )
 
 
-def main():
+def main() -> None:
     (
         args_files_or_dirs,
         args_execution_count,

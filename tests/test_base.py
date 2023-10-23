@@ -1923,7 +1923,7 @@ def test_stop_at_fail() -> None:
         "100",
         "--ignore_pyproject",
     ]
-    with mock.patch.object(sys, "argv", input_args), pytest.raises(
+    with mock.patch.object(sys, "argv", input_args), pytest.raises(  # type: ignore
         json.decoder.JSONDecodeError
     ):
         main()

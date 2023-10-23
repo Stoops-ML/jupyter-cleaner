@@ -71,6 +71,6 @@ deps =
     black
 commands =
     python -m flake8 jupyter_cleaner/ tests/
-    python -m mypy jupyter_cleaner/ tests/
+    python -m mypy jupyter_cleaner/ tests/ --check-untyped-defs --disallow-untyped-calls --disallow-untyped-defs --follow-imports silent --ignore-missing-imports --python-version 3.11 --show-column-numbers --warn-redundant-casts --warn-unused-ignores
     python -m black --check --diff .
 """
